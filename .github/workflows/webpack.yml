@@ -17,7 +17,7 @@ jobs:
         with:
           node-version: '16.x'
 
-      - name: Navigate to Next.js folder
+      - name: change directory to nextjs folder
         run: cd nextjs
 
       - name: Install dependencies
