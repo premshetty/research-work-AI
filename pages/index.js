@@ -1,71 +1,67 @@
-import { useCallback, useEffect, useState } from 'react'
-import Button from '../components/Button'
-import ClickCount from '../components/ClickCount'
-import styles from '../styles/home.module.css'
+import React, { useState } from "react";
+import { useSpeechRecognition } from "react-speech-kit";
+import { predictTopic } from "./util";
 
-function throwError() {
-  console.log(
-    // The function body() is not defined
-    document.body()
-  )
-}
+const App = () => {
+  const [speech, setSpeech] = useState("");
+  const [currentSentence, setCurrentSentence] = useState("");
+  const [sentenceList, setSentenceList] = useState([]);
 
-function Home() {
-  const [count, setCount] = useState(0)
-  const increment = useCallback(() => {
-    setCount((v) => v + 1)
-  }, [setCount])
 
-  useEffect(() => {
-    const r = setInterval(() => {
-      increment()
-    }, 1000)
 
-    return () => {
-      clearInterval(r)
+  const { listen, listening, stop } = useSpeechRecognition({
+    onResult: async (result) => {
+      const transcript = result;
+      setSpeech(transcript);
+      // If transcript is not undefined and length > 0
+      if (transcript && transcript.length > 0) {
+        let sentences = transcript;
+        if (sentences && sentences.length > 0) {
+          const commonTopic = predictTopic(sentences); // use predictTopic to find the common topic
+          let prevTopic = null;
+          for (let i = 0; i < sentences.length; i++) {
+            const sentence = sentences[i];
+            const matchedTopic = sentence.includes(commonTopic) ? commonTopic : null; // check if the sentence includes the common topic
+            if (matchedTopic && matchedTopic === prevTopic) {
+              setSentenceList(prevList => {
+                const lastSentenceIndex = prevList.length - 1;
+                const previousSentence = prevList[lastSentenceIndex];
+                const updatedSentence = `${previousSentence} ${sentence}`;
+                setCurrentSentence(updatedSentence);
+                return [...prevList.slice(0, -1), updatedSentence];
+              });
+            } else if (matchedTopic && matchedTopic !== prevTopic) {
+              setCurrentSentence(sentence);
+              setSentenceList(prevList => [...prevList, sentence]);
+              prevTopic = matchedTopic;
+            } else {
+              setCurrentSentence(sentence);
+              setSentenceList(prevList => [...prevList, sentence]);
+              prevTopic = null;
+            }
+          }
+
+        }
+      }
     }
-  }, [increment])
+  });
 
-  return (
-    <main className={styles.main}>
-      <h1>Fast Refresh Demo</h1>
-      <p>
-        Fast Refresh is a Next.js feature that gives you instantaneous feedback
-        on edits made to your React components, without ever losing component
-        state.
-      </p>
-      <hr className={styles.hr} />
-      <div>
-        <p>
-          Auto incrementing value. The counter won't reset after edits or if
-          there are errors.
-        </p>
-        <p>Current value: {count}</p>
-      </div>
-      <hr className={styles.hr} />
-      <div>
-        <p>Component with state.</p>
-        <ClickCount />
-      </div>
-      <hr className={styles.hr} />
-      <div>
-        <p>
-          The button below will throw 2 errors. You'll see the error overlay to
-          let you know about the errors but it won't break the page or reset
-          your state.
-        </p>
-        <Button
-          onClick={(e) => {
-            setTimeout(() => document.parentNode(), 0)
-            throwError()
-          }}
-        >
-          Throw an Error
-        </Button>
-      </div>
-      <hr className={styles.hr} />
-    </main>
-  )
-}
 
-export default Home
+  console.log({
+    currentSentence, sentenceList, speech
+  })
+  return (< div >
+    <button onClick={listen}>Start</button>
+    <button onClick={stop}>Stop</button>
+    <p>Current Text: {speech}</p><p p > Current Sentence: {currentSentence}</p>
+    <p>Sentence List: </p>
+    <ul>
+      {sentenceList.map((sentence, index) => (
+        <li key={index}>{sentence}</li>
+      ))}
+    </ul>
+  </div >
+  );
+};
+
+export default App;
