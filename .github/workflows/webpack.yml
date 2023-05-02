@@ -19,7 +19,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd nextjs
-          npm install
+          npm install --force
 
       - name: Build application
         run: npm run build
