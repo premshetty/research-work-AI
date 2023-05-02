@@ -1,0 +1,46 @@
+name: Deploy Next.js app to production
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16.x'
+
+      - name: Navigate to Next.js folder
+        run: cd nextjs
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build application
+        run: npm run build
+
+      - name: Deploy to production
+        uses: amondnet/vercel-action@v20
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: --prod
+
+      - name: Check deployment status
+        id: deployment-status
+        run: echo "Deployment status is ${{ env.DEPLOYMENT_STATUS }}"
+        
+      - name: Telegram notification
+        if: ${{ steps.deployment-status.outputs.deployment-status == 'READY' }}
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: 'The deployment is ready!'
