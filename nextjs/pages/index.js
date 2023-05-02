@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useSpeechRecognition } from "react-speech-kit";
-import { predictTopic } from "./util";
+
 
 const App = () => {
   const [speech, setSpeech] = useState("");
