@@ -22,7 +22,9 @@ jobs:
           npm install --force
 
       - name: Build application
-        run: npm run build
+        run: |
+          cd nextjs
+          npm run build
 
       - name: Deploy to production
         uses: amondnet/vercel-action@v20
