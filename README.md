@@ -5,6 +5,12 @@
 ```
 npm run dev
 ```
+# next js 
+
+```cmd
+cd nextjs
+npm run dev
+```
 
 
 # Chatbot GPT
